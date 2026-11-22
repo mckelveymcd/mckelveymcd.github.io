@@ -1,10 +1,45 @@
 [
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "McKelvey McDaniel",
+    "objectID": "MiniProject1.html",
+    "href": "MiniProject1.html",
+    "title": "Text Analysis on Longfellow’s and Cary’s Translations of Divine Comedy",
     "section": "",
-    "text": "Hello! My name is McKelvey McDaniel and I am a junior studying mathematics, statistics, and data science at St. Olaf College."
+    "text": "See the code for this analysis here."
+  },
+  {
+    "objectID": "MiniProject1.html#introduction",
+    "href": "MiniProject1.html#introduction",
+    "title": "Text Analysis on Longfellow’s and Cary’s Translations of Divine Comedy",
+    "section": "Introduction",
+    "text": "Introduction\nMany of the great literary masterworks of the world were not originally written in English. This presents the obvious challenge of translation and preserving the original intent and connotations of the document. This can be especially difficult regarding poetry and texts written long ago. The Divine Comedy by Dante Alighieri presents both of these issues. Written between 1308 and 1321, it details Dante’s journey through the three parts of the Christian afterlife: Hell, Purgatory, and Paradise. It is structured into three corresponding parts, each with about 30 “cantos” or individual poems. This work has been translated many times into English, but two of the most widespread and the two freely available translations are by H.F. Cary and Henry Wadsworth Longfellow. These are the two translations we will be comparing. Cary’s translation was published between 1804 and 1814 and Longfellow’s was published later that same century in 1867. Both are freely available via Project Gutenberg and are the source of the data used for this analysis."
+  },
+  {
+    "objectID": "MiniProject1.html#style-length-and-formatting",
+    "href": "MiniProject1.html#style-length-and-formatting",
+    "title": "Text Analysis on Longfellow’s and Cary’s Translations of Divine Comedy",
+    "section": "Style, length, and formatting",
+    "text": "Style, length, and formatting\nThe original poem is written in tercets with a complex rhyming scheme. It is inherent to translation that some of this rhyme scheme will be lost, but it is not a given that the structure of tercets will be destroyed. To investigate this question, we split the work into its cantos and each canto into its stanzas–the lines with no white space in between. We compare them in the plot below.\n\n\n\n\n\n\n\n\n\nNoting the free y-axis, we can see that Cary’s translation has significantly (up to 10 times!) longer stanzas and that the average length of his translation’s stanzas is much more variable by part than Longfellow’s. This is because Cary’s translation is written in blank verse, compared to Longfellow’s that preserves the tercet structure of the original text. This can be described as a purely stylistic choice, but to preserve the structure of the original poem while translating it takes a significant amount of work and speaks to Longfellow’s commitment to the project. Based on this one metric, if one wants a more authentic experience of The Divine Comedy, they should read Longfellow’s Translation. It is also interesting to note that while the overall length of the cantos, Cary’s translation’s stanza length, increases throughout the poem, Longfellow’s translation has decreasing individual stanza length through the work."
+  },
+  {
+    "objectID": "MiniProject1.html#sentiment-across-time",
+    "href": "MiniProject1.html#sentiment-across-time",
+    "title": "Text Analysis on Longfellow’s and Cary’s Translations of Divine Comedy",
+    "section": "Sentiment Across Time",
+    "text": "Sentiment Across Time\nThe overall plot of Divine Comedy is Dante’s journey through the three realms of the afterlife, so the sentiment of the work at various points will obviously depend on where Dante currently is–Hell, Paradise, or Purgatory. Theoretically, if perfect, all translations would have the exact same trajectory of sentiment, but this will likely not be the case. A challenge is presented here by the age of the work and thus its translations. Many modern sentiment assignments are, understandably, based in modern text. This work’s age means that of the 85,325 words in the dataset of the two combined works that are not so-called “stop” words, only 11,821 have an assigned sentiment in the AFINN lexicon; this is about 14%. This is an inherent limitation when using modern methods on older text. Nonetheless, we can still examine the insights gleaned from this smaller subset of text.\n\n\n\n\n\n\n\n\n\nWe can see here that the general sentiment trend is the same–Paradise is happier than Purgatory, which is happier than Hell. This we could likely have inferred without any analysis. What is more interesting to note, however, is Cary’s tendency towards more neutral language. The mean sentiments on the plot of Cary’s translation is a bit flatter than Longfellow’s (a standard deviation of 0.638 vs standard deviation of 0.651) and his translation of Hell is noticeably less stratified than Longfellow’s, who has more variability in canto-to-canto mean sentiment."
+  },
+  {
+    "objectID": "MiniProject1.html#unique-word-choices",
+    "href": "MiniProject1.html#unique-word-choices",
+    "title": "Text Analysis on Longfellow’s and Cary’s Translations of Divine Comedy",
+    "section": "Unique word choices",
+    "text": "Unique word choices\nWe now move to analyzing the specific words favored or not favored by each translator. Because translation is not an action with a definite answer, it is inherent that some translators will favor certain words more than others. A first pass at this analysis yielded the words in Cary’s translation with the highest TF-IDF statistic as words such as “turn’d,” “heav’n,” and “seem’d,” or abbreviations used by Cary but not Longfellow. This did not feel particularly telling, as it represents a choice that is more rooted in style than true word choice. These words were converted to their full version (“turned,” “heaven,” “seemed,” etc.) and the analysis was re-performed, yielding the following plot.\n\n\n\n\n\n\n\n\n\nWe can see here that Cary heavily prefers the word “beam” compared to Longfellow. We can also see that Longfellow uses the Latin name for Virgil, one of Dante’s guides, whereas Cary does not. Longfellow’s more unique words tend to be more emotional and adverbial in nature, where Cary seems to prefer different names for objects and concepts compared to Longfellow. There are notably few verbs in this plot, indicating perhaps that the two translators are mostly in alignment regarding verbiage."
+  },
+  {
+    "objectID": "MiniProject1.html#conclusion",
+    "href": "MiniProject1.html#conclusion",
+    "title": "Text Analysis on Longfellow’s and Cary’s Translations of Divine Comedy",
+    "section": "Conclusion",
+    "text": "Conclusion\nIn general, minimal differences are present between Cary and Longfellow’s translations of Dante’s Divine Comedy. This is what is expected, as these two translations were done in the same time period and are very popular, suggesting some level of accuracy. Comparison to a more modern translation, like the Kirkpatrick translation used in Penguin Classics copies that was translated in 2008, would likely yield greater differences, but copyright law and fair use prevents this without significantly more effort. In general, the lack of variability in these two works suggests that they are both reasonably faithful to the Italian text and neither is obviously “better” than another, just minorly different."
   },
   {
     "objectID": "about.html",
@@ -12,5 +47,12 @@
     "title": "About",
     "section": "",
     "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "McKelvey McDaniel",
+    "section": "",
+    "text": "Hello! My name is McKelvey McDaniel and I am a junior studying mathematics, statistics, and data science at St. Olaf College."
   }
 ]

@@ -8,12 +8,13 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - about.qmd
+      - href: MiniProject1.qmd
+        text: Text Analysis Project
 
 format:
   html:
     theme:
-      - cosmo
+      - morph
       - brand
     css: styles.css
     toc: true

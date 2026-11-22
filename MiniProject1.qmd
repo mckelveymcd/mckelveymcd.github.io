@@ -1,0 +1,296 @@
+---
+title: "Text Analysis on Longfellow’s and Cary’s
+Translations of Divine Comedy"
+author: "McKelvey McDaniel"
+---
+
+```{r setup, include = FALSE}
+library(gutenbergr)
+library(tidyverse)
+library(tidytext)
+library(ggthemes)
+library(stopwords)
+library(wordcloud2)
+
+knitr::opts_chunk$set(message = FALSE, echo = FALSE, warning = FALSE, fig.pos = 'H', fig.width = 6, fig.height = 3, fig.align = "center")
+
+divine_comedy_both <- gutenberg_download(
+  c(1004, 1008),
+  meta_fields = "title",
+  mirror = "http://mirror.csclub.uwaterloo.ca/gutenberg/")
+```
+
+```{r cleaning, include = FALSE}
+divine_comedy_both_halfclean <- divine_comedy_both[-c(7:212, 20003:20118),] |>
+  mutate(line = row_number(),
+         chapter_start = str_detect(str_to_lower(text), "canto"), #str_ functions one and two, creating true/false for if beginning of chapter
+         chapter_number = ifelse(str_detect(title, "Long"), 
+                                  ifelse(chapter_start,
+                                  str_extract(str_to_lower(text), "canto [xvilc]+"),     #regex one    
+                                          NA_character_), 
+                                  ifelse(chapter_start, str_extract(text, "^CANTO [XVILC]+"),
+                                 NA_character_)), #extracting roman numeral from chapter starts
+         part = ifelse(chapter_start,
+                       str_extract(str_to_lower(text), "^.+: canto [xvilc]+"), #regex two
+                       NA_character_), #getting part starting points for Longfellow
+         part = ifelse(is.na(part), 
+                       str_extract(text, "^APPENDIX$"), #str_ function three
+                      part),  #getting appendix part starting point       
+         part = str_replace(part, ": canto .+", ""), #regex three, getting rid of chapter numbers for Longfellow part starts
+         chapter_number = str_replace(str_to_lower(chapter_number), "canto ", ""), #str_ function four, getting rid of Canto before roman numerals in chapter number
+         chapter_number = as.integer(utils::as.roman(str_to_upper(chapter_number))), #numerals to integers
+         part = ifelse(str_detect(title, "Cary"), str_extract(text, "^(NOTES TO )?HELL$|^(NOTES TO )?PURGATORY$|^(NOTES TO )?PARADISE$|PREFACE|A CHRONOLOGICAL VIEW"), part), #regex four, getting parts for Cary
+         part = fct_relevel(part, "Hell", "Purgatory", "Heaven")) |> 
+  group_by(title) |>
+  fill(chapter_number, .direction = "down") |>
+  fill(part, .direction = "down") |> 
+  mutate(standard_part = case_when(str_detect(part, "inferno|^HELL") ~ "Hell",
+                                   str_detect(part, "purgatorio|^PURGATORY") ~ "Purgatory",
+                                   str_detect(part, "paradiso|^PARADISE") ~ "Paradise"),
+         chapter_with_part = case_when(standard_part == "Hell" ~ chapter_number,
+                                       standard_part == "Purgatory" ~ chapter_number + 34,
+                                       standard_part == "Paradise" ~ chapter_number + 67),
+         title_short = ifelse(str_detect(title, "Long"), "Longfellow", "Cary")) |>
+  filter(!is.na(standard_part)) |> #gettign rid of appendix, notes
+  ungroup()
+
+
+divine_comedy_both_words <- divine_comedy_both_halfclean |>
+    unnest_tokens(word, text)
+
+divine_comedy_both_by_stanza <- divine_comedy_both_halfclean |>
+  group_by(title) |>
+  mutate(stanza = cumsum(text == "")) |> #count whitespace to get stanza number
+  filter(text != "") |>
+  group_by(stanza, title) |>
+  mutate(text = str_flatten(text, collapse = " ")) |> #collapse each stanza into a row
+  filter(str_length(text) > 30, #str_ function five, getting rid of chapter starts, other non-content text
+         !(str_detect(str_to_lower(text), "translated by")), #regex four
+         !(str_detect(str_to_lower(text), "divine comedy of"))) |> #regex five
+  group_by(title) |>
+  select(-chapter_start) |>
+  distinct(text, .keep_all = TRUE) |> #had duplicate rows for each stanza
+      mutate(stanza = row_number(),
+              stanza_length = str_count(text, "\\s") + 1) #str_ function six
+
+write_csv(divine_comedy_both_by_stanza, "divine_comedy_both_by_stanza.csv")
+write_csv(divine_comedy_both_words, "divine_comedy_both_words.csv")
+```
+
+See the code for this analysis [here](https://github.com/mckelveymcd/mckelveymcd.github.io/blob/main/MiniProject1.qmd).
+
+## Introduction
+
+Many of the great literary masterworks of the world were not originally written in English. This presents the obvious challenge of translation and preserving the original intent and connotations of the document. This can be especially difficult regarding poetry and texts written long ago. The Divine Comedy by Dante Alighieri presents both of these issues. Written between 1308 and 1321, it details Dante's journey through the three parts of the Christian afterlife: Hell, Purgatory, and Paradise. It is structured into three corresponding parts, each with about 30 "cantos" or individual poems. This work has been translated many times into English, but two of the most widespread and the two freely available translations are by H.F. Cary and Henry Wadsworth Longfellow. These are the two translations we will be comparing. Cary's translation was published between 1804 and 1814 and Longfellow's was published later that same century in 1867. Both are freely available via Project Gutenberg and are the source of the data used for this analysis.
+
+## Style, length, and formatting
+
+The original poem is written in tercets with a complex rhyming scheme. It is inherent to translation that some of this rhyme scheme will be lost, but it is not a given that the structure of tercets will be destroyed. To investigate this question, we split the work into its cantos and each canto into its stanzas--the lines with no white space in between. We compare them in the plot below.
+
+```{r plot 1, echo = FALSE}
+#|label: stanza-length
+#|fig-cap: "This is a scatter plot showing mean stanza length in Cary and Longfellow's translations"
+
+divine_comedy_both_by_stanza |>
+  group_by(chapter_with_part, title, standard_part) |>
+  mutate(mean_length = mean(stanza_length)) |>
+  ggplot(aes(x = chapter_with_part, y = mean_length, color = standard_part)) +
+    geom_point() +
+    facet_wrap(~title_short, scales = "free_y") +
+  theme_clean() +
+  labs(title = "Average Stanza Length By Canto Across Translations",
+       x = "Canto Number",
+       y = "Mean Stanza Length (Words)",
+       color = "Part")
+
+#divine_comedy_both_by_stanza |>
+#  group_by(chapter_with_part, title, standard_part) |>
+#  mutate(mean_length = mean(stanza_length)) |>
+#  filter(str_detect(title, "Long"),
+#         mean_length > 40)
+```
+
+Noting the free y-axis, we can see that Cary's translation has significantly (up to 10 times!) longer stanzas and that the average length of his translation's stanzas is much more variable by part than Longfellow's. This is because Cary's translation is written in blank verse, compared to Longfellow's that preserves the tercet structure of the original text. This can be described as a purely stylistic choice, but to preserve the structure of the original poem while translating it takes a significant amount of work and speaks to Longfellow's commitment to the project. Based on this one metric, if one wants a more authentic experience of The Divine Comedy, they should read Longfellow's Translation. It is also interesting to note that while the overall length of the cantos, Cary's translation's stanza length, increases throughout the poem, Longfellow's translation has decreasing individual stanza length through the work.
+
+## Sentiment Across Time
+
+The overall plot of Divine Comedy is Dante's journey through the three realms of the afterlife, so the sentiment of the work at various points will obviously depend on where Dante currently is--Hell, Paradise, or Purgatory. Theoretically, if perfect, all translations would have the exact same trajectory of sentiment, but this will likely not be the case. A challenge is presented here by the age of the work and thus its translations. Many modern sentiment assignments are, understandably, based in modern text. This work's age means that of the 85,325 words in the dataset of the two combined works that are not so-called "stop" words, only 11,821 have an assigned sentiment in the AFINN lexicon; this is about 14%. This is an inherent limitation when using modern methods on older text. Nonetheless, we can still examine the insights gleaned from this smaller subset of text.
+
+```{r plot 2, echo = FALSE, fig.alt="A scatterplot faceted by translation (Cary or Longfellow), showing the mean sentiment of each canto, plotted against canto number from 1 to about 100 and colored by part (Hell, Purgatory, Paradise). For both translations, sentiment increases steadily across the poem: Hell cantos are mostly negative (around -0.5), Purgatory cantos hover near zero to mildly positive, and Paradise cantos are the most positive (up to approximately 1.5). The two translations show nearly the same trend."}
+divine_comedy_both_words |>
+  filter(!is.na(part)) |>
+  inner_join(get_sentiments("afinn")) |>
+  group_by(chapter_with_part, title) |>
+  mutate(mean_sentiment = mean(value)) |>
+  ggplot(aes(x = chapter_with_part, y = mean_sentiment, color = fct_reorder(standard_part, mean_sentiment))) +
+    geom_point() +
+  scale_y_continuous(limits = c(-2,2)) +
+    facet_wrap(~ title_short, ncol = 3) +
+  geom_hline(yintercept = 0) +
+  theme_clean() +
+  labs(title = "Average Sentiment By Canto Across Translations",
+       x = "Canto Number",
+       y = "Mean Sentiment",
+       color = "Part")
+
+#divine_comedy_both_words |>
+#  filter(!is.na(part)) |>
+#  inner_join(get_sentiments("afinn")) |>
+#  group_by(chapter_with_part, title) |>
+#  mutate(mean_sentiment = mean(value)) |>
+#  group_by(title) |>
+#  summarize(sd(mean_sentiment))
+```
+
+We can see here that the general sentiment trend is the same--Paradise is happier than Purgatory, which is happier than Hell. This we could likely have inferred without any analysis. What is more interesting to note, however, is Cary's tendency towards more neutral language. The mean sentiments on the plot of Cary's translation is a bit flatter than Longfellow's (a standard deviation of 0.638 vs standard deviation of 0.651) and his translation of Hell is noticeably less stratified than Longfellow's, who has more variability in canto-to-canto mean sentiment.
+
+```{r unused plot, eval = FALSE}
+divine_comedy_both_words |>
+  count(word, title, sort = TRUE) |>
+ bind_tf_idf(word, title, n) |>
+  group_by(title) |>
+  arrange(desc(tf_idf)) |>
+  slice_max(tf_idf, n = 10) |>
+  ungroup() |>
+  ggplot(aes(x = fct_reorder(word, tf_idf), y = tf_idf, fill = title)) +
+    geom_col(show.legend = FALSE) +
+    coord_flip() +
+    facet_wrap(~title, scales = "free") +
+  labs(x = "TF-IDF Statistic",
+       y = "Word",
+       title = "TF-IDF across translations")
+```
+
+## Unique word choices
+
+We now move to analyzing the specific words favored or not favored by each translator. Because translation is not an action with a definite answer, it is inherent that some translators will favor certain words more than others. A first pass at this analysis yielded the words in Cary's translation with the highest TF-IDF statistic as words such as "turn'd," "heav'n," and "seem'd," or abbreviations used by Cary but not Longfellow. This did not feel particularly telling, as it represents a choice that is more rooted in style than true word choice. These words were converted to their full version ("turned," "heaven," "seemed," etc.) and the analysis was re-performed, yielding the following plot.
+
+```{r plot 3}
+divine_comedy_both_words |>
+  mutate(word_no_apos = str_replace(word, "’d$", "ed"),
+         word_no_apos = str_replace(word_no_apos, "’n$", "en"))  |> #getting rid of "turn'd", etc
+  filter(!str_detect(word, "purgatorio|paradiso|inferno")) |> #getting rid of Italian names used in Longfellow
+  count(word_no_apos, title_short, sort = TRUE) |>
+  bind_tf_idf(word_no_apos, title_short, n) |>
+  group_by(title_short) |>
+  arrange(desc(tf_idf)) |>
+  slice_max(tf_idf, n = 10) |>
+  ungroup() |>
+  ggplot(aes(x = fct_reorder(word_no_apos, tf_idf), y = tf_idf, fill = title_short)) +
+    geom_col(show.legend = FALSE) +
+    coord_flip() +
+    facet_wrap(~title_short, scales = "free_y") +
+  labs(y = "TF-IDF Statistic",
+       x = "Word",
+       title = "TF-IDF Across Translations") +
+    theme_clean()
+```
+
+```{r unused plot 2, eval= FALSE}
+divine_comedy_both_words |>
+  mutate(word_no_apos = str_replace(word, "’d$", "ed"),
+         word_no_apos = str_replace(word_no_apos, "’n$", "en"))  |> #getting rid of "turn'd", etc
+  filter(!str_detect(word, "purgatorio|paradiso|inferno")) |> #getting rid of Latin names used in Longfellow
+  count(word_no_apos, title_short, standard_part, sort = TRUE) |>
+  bind_tf_idf(word_no_apos, title_short, n) |>
+  group_by(title_short, standard_part) |>
+  arrange(desc(tf_idf)) |>
+  slice_max(tf_idf, n = 5) |>
+  ungroup() |>
+  ggplot(aes(x = fct_reorder(word_no_apos, tf_idf), y = tf_idf, fill = title_short)) +
+    geom_col(show.legend = FALSE) +
+    coord_flip() +
+    facet_wrap(~title_short + standard_part, scales = "free_y") +
+  labs(y = "TF-IDF Statistic",
+       x = "Word",
+       title = "TF-IDF Across Translations") +
+    theme_clean()
+```
+
+
+We can see here that Cary heavily prefers the word "beam" compared to Longfellow. We can also see that Longfellow uses the Latin name for Virgil, one of Dante's guides, whereas Cary does not. Longfellow's more unique words tend to be more emotional and adverbial in nature, where Cary seems to prefer different names for objects and concepts compared to Longfellow. There are notably few verbs in this plot, indicating perhaps that the two translators are mostly in alignment regarding verbiage.
+
+## Conclusion
+
+In general, minimal differences are present between Cary and Longfellow's translations of Dante's Divine Comedy. This is what is expected, as these two translations were done in the same time period and are very popular, suggesting some level of accuracy. Comparison to a more modern translation, like the Kirkpatrick translation used in Penguin Classics copies that was translated in 2008, would likely yield greater differences, but copyright law and fair use prevents this without significantly more effort. In general, the lack of variability in these two works suggests that they are both reasonably faithful to the Italian text and neither is obviously "better" than another, just minorly different.
+
+```{r wordcloud?, eval=FALSE}
+wordsminiplong <- divine_comedy_both_words |>
+  filter(str_detect(title, "Long")) |>
+  anti_join(get_stopwords(source = "stopwords-iso")) |>
+  count(word, sort = TRUE) |>
+  filter(word != "NA") |>
+  slice_max(n, n = 20) |>
+    ungroup()
+  
+wordsminiplong_df <-  wordsminiplong |> 
+  slice_head(n = 80) |>
+  data.frame()
+
+wordcloud2(
+  data = wordsminiplong_df[, c("word", "n")], 
+  shape = 'circle',
+  minSize = 10
+)
+
+wordsminipcary <- divine_comedy_both_words |>
+  filter(str_detect(title, "Cary")) |>
+  anti_join(get_stopwords(source = "stopwords-iso")) |>
+  count(word, sort = TRUE) |>
+  filter(word != "NA") |>
+  slice_max(n, n = 20) |>
+    ungroup()
+  
+wordsminipcary_df <-  wordsminipcary |> 
+  slice_head(n = 80) |>
+  data.frame()
+
+wordcloud2(
+  data = wordsminipcary_df[, c("word", "n")], 
+  shape = 'circle',
+  minSize = 10
+)
+
+wordsminiplong <- divine_comedy_both_words |>
+  filter(str_detect(title, "Long")) |>
+  anti_join(get_stopwords(source = "stopwords-iso")) |>
+  count(word, sort = TRUE) |>
+  filter(word != "NA") |>
+  slice_max(n, n = 20) |>
+    ungroup()
+  
+wordsminiplong_df <-  wordsminiplong |> 
+  slice_head(n = 80) |>
+  data.frame()
+
+wordcloud2(
+  data = wordsminiplong_df[, c("word", "n")], 
+  shape = 'circle',
+  minSize = 10
+)
+
+wordsminipboth_small <- full_join(wordsminiplong, wordsminipcary, keep = TRUE) |>
+  filter(is.na(word.x) | is.na(word.y))
+
+wordsminipboth <- wordsminipboth_small |>
+  anti_join(get_stopwords(source = "stopwords-iso")) |>
+  group_by(title_short) |>
+  count(word, sort = TRUE) |>
+  filter(!(str_detect(str_to_lower(word), "NA|thy|thee|hath|doth"))) |>
+  slice_max(n, n = 20) |>
+    ungroup()
+  
+wordsminipboth_df <-  wordsminipboth |> 
+  mutate(color = ifelse(str_detect(title_short, "Cary"), "lightblue", "lightgreen")) |>
+  slice_head(n = 80) |>
+  arrange(desc(n)) |>
+  data.frame()
+
+wordcloud2(
+  data = wordsminipboth_df[, c("word", "n")], 
+  shape = 'circle',
+  minSize = 5,
+  color = wordsminipboth_df$color
+)
+```
+

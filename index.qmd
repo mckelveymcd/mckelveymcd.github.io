@@ -1,11 +1,14 @@
 ---
-title: "mckelveymcd.github.io"
+title: "McKelvey McDaniel"
+image: img_6811.jpg
+image_width: 
+about:
+  template: solana
+  links: 
+  - text: LinkedIn
+    href: https://www.linkedin.com/in/mckelvey-mcdaniel/
+    target: _blank
+  
 ---
 
-This is a Quarto website.
-
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
-
-```{r}
-1 + 1
-```
+Hello! My name is McKelvey McDaniel and I am a junior studying mathematics, statistics, and data science at St. Olaf College.

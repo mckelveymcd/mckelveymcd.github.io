@@ -73,8 +73,8 @@ divine_comedy_both_by_stanza <- divine_comedy_both_halfclean |>
       mutate(stanza = row_number(),
               stanza_length = str_count(text, "\\s") + 1) #str_ function six
 
-write_csv(divine_comedy_both_by_stanza, "divine_comedy_both_by_stanza.csv")
-write_csv(divine_comedy_both_words, "divine_comedy_both_words.csv")
+write_csv(divine_comedy_both_by_stanza, "files_MiniProject1/divine_comedy_both_by_stanza.csv")
+write_csv(divine_comedy_both_words, "files_MiniProject1/divine_comedy_both_words.csv")
 ```
 
 See the code for this analysis [here](https://github.com/mckelveymcd/mckelveymcd.github.io/blob/main/MiniProject1.qmd).

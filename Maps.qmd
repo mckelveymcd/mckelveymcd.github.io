@@ -24,19 +24,15 @@ The Affordable Care Act (ACA), passed by the Obama administration in 2010 and su
 In 2010, Florida filed a lawsuit challenging the ACA, specifically the individual mandate and Medicaid expansion. Before this lawsuit, every state was required to adopt an expansion of Medicaid eligibility to lower-income older adults with incomes above the federal poverty line but falling into a so-called "coverage gap." In 2012, the supreme court ruled that states could instead decide individually whether to adopt this expansion or not. To date, all but 10 states (Alabama, Florida, Georgia, Kansas, Mississippi, South Carolina, Tennessee, Texas, Wisconsin, and Wyoming) have expanded Medicaid. The map below details where states stood in the 2010 supreme court case. As we can see, nearly every traditionally "red" state chose to challenge the constitutionality of the ACA in court, while traditionally democratic states were mostly in support. Notably, Washington and Iowa were both split, with their attorney generals and governors taking different positions on the issue. This data is from KFF and can be accessed [here](https://www.kff.org/affordable-care-act/state-indicator/state-positions-on-aca-case/?currentTimeframe=0&sortModel=%7B%22colId%22:%22Location%22,%22sort%22:%22asc%22%7D).
 
 ```{r merging, include = FALSE}
-population <- read_csv("~/mckelveymcd.github.io/state_populations.csv") |>
-  mutate(state = state_name) |>
-  select(-state_name)
-
-enrollment <- read_csv("~/mckelveymcd.github.io/ACA_medicaid_enrollment.csv") |>
+enrollment <- read_csv("~/mckelveymcd.github.io/files_Maps/ACA_medicaid_enrollment.csv") |>
   mutate(state = str_to_lower(Location),
          total_enrollment = `Total Medicaid Enrollment`) |>
   select(state, total_enrollment)
 
-positions <- read_csv("~/mckelveymcd.github.io/ACA_court_positions.csv") |>
+positions <- read_csv("~/mckelveymcd.github.io/files_Maps/ACA_court_positions.csv") |>
   filter(row_number() < 52)
 
-spending <- read_csv("~/mckelveymcd.github.io/ACA_medicaid_spending.csv") |>
+spending <- read_csv("~/mckelveymcd.github.io/files_Maps/ACA_medicaid_spending.csv") |>
   filter(row_number() < 53)
 
 states_static <- as_tibble(map_data("state")) |>

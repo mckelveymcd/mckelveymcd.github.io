@@ -165,7 +165,8 @@ ggplot(data = static_spending, aes(x = long, y = lat, group = group)) +
   theme_void() +
   scale_fill_gradientn(colors = ggtrout_palette("rainbow2", type = "continuous")) +
   labs(title = "Spend per Medicaid Enrollee in the 2024 Fiscal Year (States without expanded Medicaid highlighted in blue)",
-       fill = "Spend per Enrollee")
+       fill = "Spend per Enrollee",
+       caption = "Data from KFF.")
 ```
 ## Dynamic State Spending Map
 

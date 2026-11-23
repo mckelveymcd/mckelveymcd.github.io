@@ -10,6 +10,8 @@ website:
         text: Home
       - href: MiniProject1.qmd
         text: Text Analysis Project
+      - href: Maps.qmd
+        text: Maps Project
 
 format:
   html:

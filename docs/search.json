@@ -42,6 +42,13 @@
     "text": "Conclusion\nIn general, minimal differences are present between Cary and Longfellow’s translations of Dante’s Divine Comedy. This is what is expected, as these two translations were done in the same time period and are very popular, suggesting some level of accuracy. Comparison to a more modern translation, like the Kirkpatrick translation used in Penguin Classics copies that was translated in 2008, would likely yield greater differences, but copyright law and fair use prevents this without significantly more effort. In general, the lack of variability in these two works suggests that they are both reasonably faithful to the Italian text and neither is obviously “better” than another, just minorly different."
   },
   {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "McKelvey McDaniel",
+    "section": "",
+    "text": "Hello! My name is McKelvey McDaniel and I am a junior studying mathematics, statistics, and data science at St. Olaf College."
+  },
+  {
     "objectID": "about.html",
     "href": "about.html",
     "title": "About",
@@ -49,10 +56,24 @@
     "text": "About this site\n\n1 + 1\n\n[1] 2"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "McKelvey McDaniel",
+    "objectID": "Maps.html",
+    "href": "Maps.html",
+    "title": "The Affordable Care Act, Medicaid, and Spending",
     "section": "",
-    "text": "Hello! My name is McKelvey McDaniel and I am a junior studying mathematics, statistics, and data science at St. Olaf College."
+    "text": "Code for this analysis is accessible here\nThe Affordable Care Act (ACA), passed by the Obama administration in 2010 and subsequently revised in 2014, was aimed to bring sweeping reforms to the United States health insurance industry and marketplace. It has been enormously successful at changing how health insurance operates in America. Whether or not it has actually make healthcare cheaper, better, and more efficient is a matter of debate and one of the most hotly contested issues in government today."
+  },
+  {
+    "objectID": "Maps.html#dynamic-state-position-map",
+    "href": "Maps.html#dynamic-state-position-map",
+    "title": "The Affordable Care Act, Medicaid, and Spending",
+    "section": "Dynamic State Position Map",
+    "text": "Dynamic State Position Map"
+  },
+  {
+    "objectID": "Maps.html#dynamic-state-spending-map",
+    "href": "Maps.html#dynamic-state-spending-map",
+    "title": "The Affordable Care Act, Medicaid, and Spending",
+    "section": "Dynamic State Spending Map",
+    "text": "Dynamic State Spending Map"
   }
 ]

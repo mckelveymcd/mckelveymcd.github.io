@@ -1,0 +1,208 @@
+---
+title: "The Affordable Care Act, Medicaid, and Spending"
+author: "McKelvey McDaniel"
+format: html
+---
+
+```{r setup, include = FALSE}
+library(tidyverse)
+library(maps)
+library(ggtrout)
+library(statebins)
+library(leaflet)
+library(sf)
+library(htmltools)
+library(glue)
+library(scales)
+```
+Code for this analysis is accessible [here](https://github.com/mckelveymcd/mckelveymcd.github.io/blob/main/Maps.qmd)
+
+The Affordable Care Act (ACA), passed by the Obama administration in 2010 and subsequently revised in 2014, was aimed to bring sweeping reforms to the United States health insurance industry and marketplace. It has been enormously successful at changing how health insurance operates in America. Whether or not it has actually make healthcare cheaper, better, and more efficient is a matter of debate and one of the most hotly contested issues in government today. 
+
+# National Federation of Independent Business v. Sebelius
+
+In 2010, Florida filed a lawsuit challenging the ACA, specifically the individual mandate and Medicaid expansion. Before this lawsuit, every state was required to adopt an expansion of Medicaid eligibility to lower-income older adults with incomes above the federal poverty line but falling into a so-called "coverage gap." In 2012, the supreme court ruled that states could instead decide individually whether to adopt this expansion or not. To date, all but 10 states (Alabama, Florida, Georgia, Kansas, Mississippi, South Carolina, Tennessee, Texas, Wisconsin, and Wyoming) have expanded Medicaid. The map below details where states stood in the 2010 supreme court case. As we can see, nearly every traditionally "red" state chose to challenge the constitutionality of the ACA in court, while traditionally democratic states were mostly in support. Notably, Washington and Iowa were both split, with their attorney generals and governors taking different positions on the issue. This data is from KFF and can be accessed [here](https://www.kff.org/affordable-care-act/state-indicator/state-positions-on-aca-case/?currentTimeframe=0&sortModel=%7B%22colId%22:%22Location%22,%22sort%22:%22asc%22%7D).
+
+```{r merging, include = FALSE}
+population <- read_csv("~/mckelveymcd.github.io/state_populations.csv") |>
+  mutate(state = state_name) |>
+  select(-state_name)
+
+enrollment <- read_csv("~/mckelveymcd.github.io/ACA_medicaid_enrollment.csv") |>
+  mutate(state = str_to_lower(Location),
+         total_enrollment = `Total Medicaid Enrollment`) |>
+  select(state, total_enrollment)
+
+positions <- read_csv("~/mckelveymcd.github.io/ACA_court_positions.csv") |>
+  filter(row_number() < 52)
+
+spending <- read_csv("~/mckelveymcd.github.io/ACA_medicaid_spending.csv") |>
+  filter(row_number() < 53)
+
+states_static <- as_tibble(map_data("state")) |>
+  select(region, group, order, lat, long)
+
+states_sf <- 
+  read_sf("https://rstudio.github.io/leaflet/json/us-states.geojson") |>
+  select(name, geometry)
+
+positions <- positions |>
+  mutate(state = str_to_lower(Location),
+         position = `State Positions on ACA Case`) |>
+  select(-c(Location, `State Positions on ACA Case`))
+
+spending <- spending |>
+  mutate(state = str_to_lower(Location),
+         spending = `Total Medicaid Spending`,
+         spending = parse_number(spending)) |>
+  select(spending, state) |>
+  left_join(enrollment) |>
+  mutate(spend_per_enrollee = spending / total_enrollment)
+
+states_static <- states_static |>
+  mutate(state = region) |>
+  select(-region)
+
+states_sf <- states_sf |>
+  mutate(state = str_to_lower(name)) |>
+  select(-name)
+
+static_positions <- left_join(states_static, positions) |>
+  filter(!(state %in% c("alaska", "hawaii")))
+
+dynamic_positions <- left_join(states_sf, positions)
+
+static_spending <- left_join(states_static, spending) |>
+  filter(!(state %in% c("alaska", "hawaii")))
+
+dynamic_spending <- left_join(states_sf, spending)
+```
+```{r static positions, echo = FALSE, fig.width = 10}
+ggplot(data = static_positions, aes(x = long, y = lat, group = group)) + 
+    geom_polygon(aes(fill = position), colour = "gray3", linewidth = 0.5) +
+  theme_void() +
+  scale_fill_discrete(palette = as.character(ggtrout_palette("rainbow3"))) +
+  labs(title = "Positions on the ACA in \"National Federation of Independent Business v. Sebelius\" by State",
+       fill = "Position",
+       caption = "\"Challeneged and Supported\" states had their attorney generals and governers take different positions. Data from KFF.")
+```
+## Dynamic State Position Map
+
+```{r dynamic positions, echo = FALSE, warning = FALSE}
+pal <- colorFactor(as.character(ggtrout_palette("rainbow3")), domain = dynamic_positions$position)
+
+dynamic_positions <- dynamic_positions |>
+  mutate(labels = str_c(str_to_title(state), ": ", position, ifelse(position == "No position", " towards", ""), " the ACA in \"National Federation of Independent Business v. Sebelius\""))
+
+
+labels <- lapply(dynamic_positions$labels, HTML)
+
+leaflet(dynamic_positions) |>
+  setView(-96, 37.8, 4) |>
+  addTiles() |>
+  addPolygons(
+    fillColor = ~pal(position),
+    weight = 2,
+    opacity = 1,
+    color = "white",
+    dashArray = "3",
+    fillOpacity = 0.7,
+    highlightOptions = highlightOptions(
+      weight = 5,
+      color = "#666",
+      dashArray = "",
+      fillOpacity = 0.7,
+      bringToFront = TRUE),
+    label = labels,
+    labelOptions = labelOptions(
+      style = list("font-weight" = "normal", padding = "3px 8px"),
+      textsize = "15px",
+      direction = "auto")) |>
+  addLegend(pal = pal, values = ~position, opacity = 0.7, title = NULL,
+    position = "bottomright")
+```
+
+# Medicaid Spending
+
+```{r, include = FALSE}
+dollar(min(spending$spending))
+dollar(max(spending[-1,]$spending))
+
+pop_wy <- as.numeric(spending |>
+  filter(state == "wyoming") |>
+  select(total_enrollment))
+
+pop_ca <- as.numeric(spending |>
+  filter(state == "california") |>
+  select(total_enrollment))
+
+pop_ca/pop_wy
+
+spend_mn <- as.numeric(spending |>
+  filter(state == "minnesota") |>
+  select(spend_per_enrollee))
+
+spend_next <- as.numeric(spending |>
+  filter(state != "minnesota") |>
+  slice_max(spend_per_enrollee, n = 1) |>
+  select(spend_per_enrollee))
+
+IQR(spending$spend_per_enrollee)
+mean(spending$spend_per_enrollee)
+
+dollar(spend_mn - spend_next)
+```
+
+Spending varies widely by state, ranging from only 772 million dollars in the 2024 fiscal year to 139 billion. Wyoming is the state that spent the least, and California spent the most. This raises an obvious issue, with the population of California being nearly 67 times that of Wyoming. California also has nearly 222 times as many Medicaid enrollees as Wyoming. Thus, it is much more illuminating to look at Medicaid spend per enrollee than total spend. One clear insight from this plot is that Minnesota is spending significantly more per enrollee than any other state. Compared to the next highest spending state, Minnesota is spending $1,148 more per covered individual. We can also see that the 10 states who have not expanded medicaid go have some of the lowest spend per enrollee, suggesting that those who are excluded are high-cost. However, it's also clear that states like Nevada and North Carolina have kept their spend low and expanded Medicaid. To see total spend and exact spending amounts by state, see the dynamic map below. Spending and enrollment data is from KFF, accessible [here](https://www.kff.org/medicaid/state-indicator/medicaid-expansion-spending/?currentTimeframe=0&sortModel=%7B%22colId%22:%22Location%22,%22sort%22:%22asc%22%7D) and [here](https://www.kff.org/medicaid/state-indicator/medicaid-expansion-enrollment/?currentTimeframe=9&sortModel=%7B%22colId%22:%22Location%22,%22sort%22:%22asc%22%7D).
+
+```{r static sepnding, echo = FALSE, fig.width = 10}
+unexpanded_states <- c("alabama", "florida", "georgia", "kansas", "mississippi", "south carolina", "tennessee", "texas", "wisconsin", "wyoming")
+
+ggplot(data = static_spending, aes(x = long, y = lat, group = group)) + 
+  geom_polygon(aes(fill = spend_per_enrollee), colour = "grey3", linewidth = 0.5) +
+  geom_polygon(
+    data = static_spending |> filter(state %in% unexpanded_states),
+    aes(fill = spend_per_enrollee),
+    colour = "blue",
+    linewidth = 1.2
+  ) +
+  theme_void() +
+  scale_fill_gradientn(colors = ggtrout_palette("rainbow2", type = "continuous")) +
+  labs(title = "Spend per Medicaid Enrollee in the 2024 Fiscal Year (States without expanded Medicaid highlighted in blue)",
+       fill = "Spend per Enrollee")
+```
+## Dynamic State Spending Map
+
+```{r dynamic spending, echo = FALSE, warning = FALSE}
+
+dynamic_spending <- dynamic_spending |>
+  mutate(labels = str_c(str_to_title(state), ": ", dollar(spend_per_enrollee), " spent per medicaid enrollee in the 2024 fiscal year, ", dollar(spending), " spent total."))
+
+pal <- colorBin(as.character(ggtrout_palette("cutthroat3")), domain = dynamic_spending$spend_per_enrollee)
+
+labels <- lapply(dynamic_spending$labels, HTML)
+
+leaflet(dynamic_spending) |>
+  setView(-96, 37.8, 4) |>
+  addTiles() |>
+  addPolygons(
+    fillColor = ~pal(spend_per_enrollee),
+    weight = 2,
+    opacity = 1,
+    color = "white",
+    dashArray = "3",
+    fillOpacity = 0.7,
+    highlightOptions = highlightOptions(
+      weight = 5,
+      color = "#666",
+      dashArray = "",
+      fillOpacity = 0.7,
+      bringToFront = TRUE),
+    label = labels,
+    labelOptions = labelOptions(
+      style = list("font-weight" = "normal", padding = "3px 8px"),
+      textsize = "15px",
+      direction = "auto")) |>
+  addLegend(pal = pal, values = ~spend_per_enrollee, opacity = 0.7, title = NULL,
+    position = "bottomright")
+```

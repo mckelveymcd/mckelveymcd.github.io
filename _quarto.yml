@@ -8,10 +8,12 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: MiniProject1.qmd
-        text: Text Analysis Project
-      - href: Maps.qmd
-        text: Maps Project
+      - text: SDS 264 (Fall 2026)
+        menu:
+        - href: MiniProject1.qmd
+          text: Text Analysis Project
+        - href: Maps.qmd
+          text: Maps Project
 
 format:
   html:

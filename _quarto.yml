@@ -8,7 +8,7 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - text: SDS 264 (Fall 2026)
+      - text: Data Science 2 (Fall 2026)
         menu:
         - href: MiniProject1.qmd
           text: Text Analysis Project

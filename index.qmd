@@ -1,33 +1,35 @@
 ---
 title: "McKelvey McDaniel"
 image: img_6811.jpg
-image_width: 
+toc: false
 about:
   template: solana
   links: 
   - text: LinkedIn
     href: https://www.linkedin.com/in/mckelvey-mcdaniel/
     target: _blank
-  
+  - text: GitHub
+    href: https://github.com/mckelveymcd 
+    target: _blank
 ---
 
 Hello! My name is McKelvey McDaniel and I am a junior studying mathematics, statistics, and data science at St. Olaf College. I am interested in actuarial science. Outside of the classroom, I am on the swim team and love to read and do puzzles. 
 
 # Experiences
 
-Center for Interdisciplinary Research Fellow<br>
+**Center for Interdisciplinary Research Fellow**<br>
 September 2026 - Present
 
-New Student Orientation Coordinator<br>
+**New Student Orientation Coordinator**<br>
 September 2026 - Present
 
-Directed Undergraduate Research (k-graph moves)<br>
+**Directed Undergraduate Research (k-graph moves)**<br>
 February 2026 - May 2026
 
-Budapest Semesters in Mathematics<br>
+**Budapest Semesters in Mathematics**<br>
 June 2026 - August 2026
 
 # Education
-St. Olaf College<br>
+**St. Olaf College**<br>
 BA in Statistics and Data Science, Mathematics<br>
 September 2024 - Present (Anticipated graduation: May 2028)
